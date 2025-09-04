@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interpreter błędów SYSCON</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+
+    background-image: url('tlo.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+  }
+
+  header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  .image-row {
+	  display: flex;
+	  justify-content: center; /* centrowanie całej linii */
+	  gap: 30px;               /* odstęp między ramkami */
+	  margin: 40px 0;          /* odstęp od reszty strony */
+	}
+
+	.image-box {
+	  width: 400px;            /* szerokość ramki */
+	  height: 300px;           /* wysokość ramki */
+	  border: 3px solid #00b3b3; /* obramowanie */
+	  border-radius: 10px;     /* zaokrąglone rogi */
+	  overflow: hidden;        /* żeby obraz nie wychodził poza ramkę */
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  background-color: #1f1f1f; /* tło w ramce */
+	}
+
+	.image-box img {
+	  width: 100%;
+	  height: 100%;
+	  object-fit: cover;       /* obraz wypełnia ramkę i zachowuje proporcje */
+	}
+
+  header img {
+    height: 300px;
+  }
+
+  .title-container {
+    display: flex;
+    justify-content: center; /* wyśrodkowanie poziome */
+    align-items: center;
+    flex-direction: row;
+    margin-top: 40px; /* odległość od góry */
+    text-align: center;
+  }
+
+  .title-container h1 {
+    font-size: 2.5rem;
+    color: #00b3b3;
+    margin: 0;
+  }
+
+  .title-container .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: #1f1f1f;
+    border: 2px solid #00b3b3;
+    color: #00ffcc;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  .kalkulator {
+    background-color: rgba(40,40,40,0.95);
+    border: 3px solid #00b3b3;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
+    padding: 30px;
+    width: 360px;
+    text-align: center;
+    margin: 20px auto; /* wyśrodkowanie poziome */
+  }
+
+  h2 {
+    color: #00b3b3;
+    margin-bottom: 20px;
+  }
+
+  /* osobna szerokość dla pola tekstowego */
+  #sysconInput {
+    width: 190px; /* szerokość pola */
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #444;
+    color: #fff;
+  }
+
+  /* przycisk pozostaje pełnej szerokości kalkulatora */
+  button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #00b3b3;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background-color: #00dada;
+  }
+
+  #wynik {
+    margin-top: 20px;
+    background-color: #333;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: left;
+    font-size: 16px;
+    color: #00ffcc;
+    box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px;
+    margin: 6px 0;
+    align-items: center;
+  }
+
+  .progress-wrap {
+    background: #1f1f1f;
+    border: 3px solid #00b3b3;
+    border-radius: 12px;
+    height: 18px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00b3b3, #00dada);
+    width: 0%;
+    transition: width .3s ease;
+  }
+
+  .progress-label {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #cffff6;
+    text-align: center;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="Logo firmy">
+</header>
+
+<div class="title-container">
+  <h1>Interpreter błędów Playstation <span class="badge">SYSCON</span></h1>
+</div>
+
+<div class="kalkulator">
+  <h2>Interpreter SYSCON</h2>
+
+  <div class="row">
+    <label for="sysconInput">Wpisz kod HEX (A0FF1FFF):</label>
+    <input type="text" id="sysconInput" maxlength="8" placeholder="np. 80A18901">
+  </div>
+
+  <button onclick="interpretSyscon()">Interpretuj</button>
+
+  <div id="wynik" class="hidden">
+    <div><strong>Power State:</strong> <span id="powerState"></span></div>
+    <div><strong>Post Step / Device:</strong> <span id="postDevice"></span></div>
+    <div><strong>Kategoria:</strong> <span id="category"></span></div>
+    <div><strong>Błąd:</strong> <span id="errorCode"></span></div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-label">Progres rozruchu</div>
+  </div>
+</div>
+
+<script>
+const powerStates = {
+  '80': 'Static State (Power ON)',
+  '86': 'NOR',
+  '90': 'Static State (Power OFF)',
+  'A0': 'Immediately after SYSCON',
+  'C0': 'Hardware Access Post step będą błędne',
+  'E0': 'In system error Southbridge',
+  'E1': 'In system error PWM',
+  'E2': 'In system error Not clear',
+  'E3': 'In system error Not Vram'
+};
+
+const categories = {
+  '1': 'System Error',
+  '2': 'Fatal Error',
+  '3': 'Booting Error',
+  '4': 'Data Error'
+};
+
+const postDevices = {
+  '00': 'INNE',
+  '01': 'HDMI',
+  '05': 'Cpu Power',
+  '06': 'Gfx Power',
+  '80': 'Brak zasilania na linii',
+  '81': 'Sekwencja zasilania',
+  '83': 'SoC Secure loader',
+  '84': 'PCIE',
+  '87': 'Syscon - szyna danych',
+  '88': 'Flash Controller Boot EAP',
+  '89': 'Kontroler dysku flash i integralność NOR',
+  '8A': 'Kontroler dysku flash - Temperatura',
+  '8B': 'Kontroler dysku flash - Watchdog timer / komunikacja RAM',
+  '8C': 'USB C',
+  '8D': 'Temperatura APU',
+  '8E': 'Komendy Hosta',
+  '8F': 'SMCU',
+  '90': 'Boot crash niejasne',
+  '91': 'Błąd odczytu systemu',
+  'C0': 'Mechanizm samokontroli systemu EMC',
+  'D0': 'Banki pamięci',
+  'FF': 'Boot Complete'
+};
+
+function interpretSyscon() {
+  const input = document.getElementById('sysconInput').value.toUpperCase();
+  if (!/^[0-9A-F]{8}$/.test(input)) {
+    alert('Wpisz dokładnie 8 znaków HEX (0-9, A-F)');
+    return;
+  }
+
+  const XX = input.slice(0, 2);
+  const YY = input.slice(2, 4);
+  const Z = input.slice(4, 5);
+  const EEE = input.slice(5, 8);
+
+  const power = powerStates[XX] || 'Nieznany stan mocy';
+  const post = postDevices[YY] || 'Nieznane urządzenie / post step';
+  const category = categories[Z] || 'Nieznana kategoria';
+  
+  document.getElementById('powerState').textContent = power;
+  document.getElementById('postDevice').textContent = post;
+  document.getElementById('category').textContent = category;
+  document.getElementById('errorCode').textContent = EEE;
+
+  let progressPercent = Math.min(100, Math.max(0, parseInt(YY, 16) / 255 * 100));
+  document.getElementById('progressBar').style.width = progressPercent + '%';
+
+  document.getElementById('wynik').classList.remove('hidden');
+}
+</script>
+<!-- Sekcja z trzema zdjęciami -->
+<div class="image-row">
+  <div class="image-box">
+    <img src="img1.jpg" alt="EDM-010">
+  </div>
+  <div class="image-box">
+    <img src="img2.jpg" alt="EDM-030">
+  </div>
+  <div class="image-box">
+    <img src="img3.jpg" alt="EDM-040">
+  </div>
+</div>
+
+
+</body>
+</html>
